@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Pagos (Eli)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+        }
+        /* Custom styles for better rounded corners and shadows */
+        .rounded-xl {
+            border-radius: 0.75rem; /* 12px */
+        }
+        .shadow-2xl {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .shadow-inner {
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+        }
+        .table-auto {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-auto th, .table-auto td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0; /* gray-200 */
+        }
+        .table-auto th {
+            background-color: #e0f2fe; /* blue-50 */
+            color: #4a5568; /* gray-700 */
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+        .table-auto tbody tr:hover {
+            background-color: #f7fafc; /* gray-50 */
+        }
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 100; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 font-sans text-gray-800">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl p-6 md:p-8 border border-blue-200">
+        <h1 class="text-4xl font-extrabold text-center text-blue-700 mb-8 tracking-tight">
+            Registro de Pagos (Eli)
+        </h1>
+
+        <div id="message" class="hidden bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <span id="message-text" class="block sm:inline"></span>
+            <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="document.getElementById('message').classList.add('hidden');">
+                <svg class="fill-current h-6 w-6 text-blue-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Cerrar</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.103l-2.651 3.746a1.2 1.2 0 1 1-1.697-1.697l3.746-2.651-3.746-2.651a1.2 1.2 0 0 1 1.697-1.697L10 8.897l2.651-3.746a1.2 1.2 0 0 1 1.697 1.697L11.103 10l3.746 2.651a1.2 1.2 0 0 1 0 1.698z"/></svg>
+            </span>
+        </div>
+
+        <div class="mb-10 p-6 bg-blue-50 rounded-xl shadow-inner border border-blue-200">
+            <h2 id="form-title" class="text-2xl font-bold text-blue-600 mb-6">Registrar Nuevo Pago</h2>
+            <form id="payment-form" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <input type="hidden" id="payment-id">
+                <div>
+                    <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Fecha de Pago</label>
+                    <input
+                        type="date"
+                        id="date"
+                        name="date"
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="salary" class="block text-sm font-medium text-gray-700 mb-1">Sueldo Mensual ($)</label>
+                    <input
+                        type="number"
+                        id="salary"
+                        name="salary"
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Ej: 50000"
+                        value="0"
+                        min="0"
+                        step="0.01"
+                        required
+                    />
+                </div>
+                <div>
+                    <label for="contributions" class="block text-sm font-medium text-gray-700 mb-1">Contribuciones ($)</label>
+                    <input
+                        type="number"
+                        id="contributions"
+                        name="contributions"
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Ej: 10000"
+                        value="0"
+                        min="0"
+                        step="0.01"
+                    />
+                </div>
+                <div>
+                    <label for="aportes" class="block text-sm font-medium text-gray-700 mb-1">Aportes ($)</label>
+                    <input
+                        type="number"
+                        id="aportes"
+                        name="aportes"
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Ej: 5000"
+                        value="0"
+                        min="0"
+                        step="0.01"
+                    />
+                </div>
+                <div>
+                    <label for="art" class="block text-sm font-medium text-gray-700 mb-1">ART ($)</label>
+                    <input
+                        type="number"
+                        id="art"
+                        name="art"
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Ej: 2000"
+                        value="0"
+                        min="0"
+                        step="0.01"
+                    />
+                </div>
+                <div>
+                    <label for="aguinaldo" class="block text-sm font-medium text-gray-700 mb-1">Aguinaldo ($)</label>
+                    <input
+                        type="number"
+                        id="aguinaldo"
+                        name="aguinaldo"
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Ej: 25000 (Junio/Diciembre)"
+                        value="0"
+                        min="0"
+                        step="0.01"
+                    />
+                </div>
+                <div class="md:col-span-2">
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                    <div class="flex items-center space-x-2">
+                        <textarea
+                            id="description"
+                            name="description"
+                            rows="3"
+                            class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                            placeholder="Añadir cualquier nota relevante sobre el pago..."
+                        ></textarea>
+                        <button
+                            type="button"
+                            id="generate-note-button"
+                            class="px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-200 flex items-center justify-center h-full"
+                        >
+                            Generar Nota ✨
+                        </button>
+                    </div>
+                    <span id="generate-note-loading" class="text-sm text-gray-500 hidden">Generando...</span>
+                </div>
+                <div class="md:col-span-2 text-right text-xl font-bold text-blue-700 mb-6">
+                    Total: $<span id="total-amount">0.00</span>
+                </div>
+                <div class="md:col-span-2 flex justify-end space-x-3">
+                    <button
+                        type="submit"
+                        id="save-button"
+                        class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200"
+                    >
+                        Agregar Pago
+                    </button>
+                    <button
+                        type="button"
+                        id="cancel-edit-button"
+                        class="hidden px-6 py-3 bg-gray-400 text-white font-semibold rounded-lg shadow-md hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition duration-200"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="p-6 bg-white rounded-xl shadow-2xl border border-blue-200">
+            <h2 class="text-2xl font-bold text-blue-600 mb-6">Historial de Pagos</h2>
+            <div id="payment-list-container" class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 rounded-lg overflow-hidden">
+                    <thead class="bg-blue-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sueldo</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contr.</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aportes</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ART</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aguinaldo</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notas</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payment-list" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                </table>
+                <p id="no-payments-message" class="text-center text-gray-500 py-8 hidden">No hay pagos registrados aún.</p>
+            </div>
+        </div>
+
+        <div id="confirm-modal" class="modal">
+            <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-sm text-center">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Confirmar Eliminación</h3>
+                <p id="confirm-message" class="text-gray-700 mb-6">
+                    ¿Está seguro de que desea eliminar este pago? Esta acción no se puede deshacer.
+                </p>
+                <div class="flex justify-center space-x-4">
+                    <button
+                        id="delete-confirm-button"
+                        class="px-5 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-200"
+                    >
+                        Eliminar
+                    </button>
+                    <button
+                        id="delete-cancel-button"
+                        class="px-5 py-2 bg-gray-400 text-white font-semibold rounded-lg shadow-md hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition duration-200"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const paymentForm = document.getElementById('payment-form');
+        const paymentIdInput = document.getElementById('payment-id');
+        const dateInput = document.getElementById('date');
+        const salaryInput = document.getElementById('salary');
+        const contributionsInput = document.getElementById('contributions');
+        const aportesInput = document.getElementById('aportes');
+        const artInput = document.getElementById('art');
+        const aguinaldoInput = document.getElementById('aguinaldo');
+        const descriptionInput = document.getElementById('description');
+        const totalAmountSpan = document.getElementById('total-amount');
+        const saveButton = document.getElementById('save-button');
+        const cancelEditButton = document.getElementById('cancel-edit-button');
+        const paymentList = document.getElementById('payment-list');
+        const noPaymentsMessage = document.getElementById('no-payments-message');
+        const formTitle = document.getElementById('form-title');
+        const messageDiv = document.getElementById('message');
+        const messageText = document.getElementById('message-text');
+
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmMessage = document.getElementById('confirm-message');
+        const deleteConfirmButton = document.getElementById('delete-confirm-button');
+        const deleteCancelButton = document.getElementById('delete-cancel-button');
+
+        const generateNoteButton = document.getElementById('generate-note-button');
+        const generateNoteLoading = document.getElementById('generate-note-loading');
+
+
+        let payments = JSON.parse(localStorage.getItem('eliPayments')) || [];
+        let editingPaymentId = null;
+
+        // Function to show messages
+        function showMessage(text, isError = false) {
+            messageText.textContent = text;
+            messageDiv.classList.remove('hidden');
+            if (isError) {
+                messageDiv.classList.remove('bg-blue-100', 'border-blue-400', 'text-blue-700');
+                messageDiv.classList.add('bg-red-100', 'border-red-400', 'text-red-700');
+            } else {
+                messageDiv.classList.remove('bg-red-100', 'border-red-400', 'text-red-700');
+                messageDiv.classList.add('bg-blue-100', 'border-blue-400', 'text-blue-700');
+            }
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                messageDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Calculate total payment
+        function calculateTotal() {
+            const salary = parseFloat(salaryInput.value || 0);
+            const contributions = parseFloat(contributionsInput.value || 0);
+            const aportes = parseFloat(aportesInput.value || 0);
+            const art = parseFloat(artInput.value || 0);
+            const aguinaldo = parseFloat(aguinaldoInput.value || 0);
+            const total = (salary + contributions + aportes + art + aguinaldo).toFixed(2);
+            totalAmountSpan.textContent = total;
+        }
+
+        // Render payments to the table
+        function renderPayments() {
+            paymentList.innerHTML = ''; // Clear existing list
+            // Sort payments by date in descending order (most recent first)
+            const sortedPayments = [...payments].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (sortedPayments.length === 0) {
+                noPaymentsMessage.classList.remove('hidden');
+            } else {
+                noPaymentsMessage.classList.add('hidden');
+                sortedPayments.forEach(payment => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50 transition-colors duration-150';
+                    row.innerHTML = `
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                            ${new Date(payment.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">$${parseFloat(payment.salary).toFixed(2)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">$${parseFloat(payment.contributions).toFixed(2)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">$${parseFloat(payment.aportes).toFixed(2)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">$${parseFloat(payment.art).toFixed(2)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">$${parseFloat(payment.aguinaldo).toFixed(2)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-bold text-blue-700">$${parseFloat(payment.total).toFixed(2)}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700 max-w-xs overflow-hidden text-ellipsis whitespace-nowrap" title="${payment.description || ''}">
+                            ${payment.description || '-'}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                            <button onclick="editPayment('${payment.id}')" class="text-indigo-600 hover:text-indigo-900 mr-3 transition-colors duration-150">
+                                Editar
+                            </button>
+                            <button onclick="confirmDelete('${payment.id}', '${payment.date}')" class="text-red-600 hover:text-red-900 transition-colors duration-150">
+                                Eliminar
+                            </button>
+                        </td>
+                    `;
+                    paymentList.appendChild(row);
+                });
+            }
+        }
+
+        // Save payments to local storage
+        function savePayments() {
+            localStorage.setItem('eliPayments', JSON.stringify(payments));
+            renderPayments();
+        }
+
+        // Add or Update payment
+        paymentForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            if (!dateInput.value || !salaryInput.value) {
+                showMessage('La fecha y el sueldo son campos obligatorios.', true);
+                return;
+            }
+
+            const newPayment = {
+                date: dateInput.value,
+                salary: parseFloat(salaryInput.value || 0),
+                contributions: parseFloat(contributionsInput.value || 0),
+                aportes: parseFloat(aportesInput.value || 0),
+                art: parseFloat(artInput.value || 0),
+                aguinaldo: parseFloat(aguinaldoInput.value || 0),
+                description: descriptionInput.value.trim()
+            };
+            newPayment.total = parseFloat(calculateTotalForObject(newPayment));
+
+            if (editingPaymentId) {
+                // Update existing payment
+                const index = payments.findIndex(p => p.id === editingPaymentId);
+                if (index !== -1) {
+                    payments[index] = { ...payments[index], ...newPayment };
+                    showMessage('Pago actualizado exitosamente.');
+                }
+                editingPaymentId = null;
+                formTitle.textContent = 'Registrar Nuevo Pago';
+                saveButton.textContent = 'Agregar Pago';
+                cancelEditButton.classList.add('hidden');
+            } else {
+                // Add new payment
+                newPayment.id = Date.now().toString(); // Simple unique ID
+                payments.push(newPayment);
+                showMessage('Pago agregado exitosamente.');
+            }
+
+            savePayments();
+            paymentForm.reset(); // Clear form
+            salaryInput.value = 0; // Reset number inputs to 0
+            contributionsInput.value = 0;
+            aportesInput.value = 0;
+            artInput.value = 0;
+            aguinaldoInput.value = 0;
+            calculateTotal(); // Recalculate total for empty form
+        });
+
+        // Helper to calculate total for an object
+        function calculateTotalForObject(payment) {
+            const salary = parseFloat(payment.salary || 0);
+            const contributions = parseFloat(payment.contributions || 0);
+            const aportes = parseFloat(payment.aportes || 0);
+            const art = parseFloat(payment.art || 0);
+            const aguinaldo = parseFloat(payment.aguinaldo || 0);
+            return (salary + contributions + aportes + art + aguinaldo).toFixed(2);
+        }
+
+        // Edit payment
+        window.editPayment = (id) => {
+            const payment = payments.find(p => p.id === id);
+            if (payment) {
+                editingPaymentId = id;
+                dateInput.value = payment.date;
+                salaryInput.value = payment.salary;
+                contributionsInput.value = payment.contributions;
+                aportesInput.value = payment.aportes;
+                artInput.value = payment.art;
+                aguinaldoInput.value = payment.aguinaldo;
+                descriptionInput.value = payment.description;
+                calculateTotal(); // Update total display
+
+                formTitle.textContent = 'Editar Pago';
+                saveButton.textContent = 'Guardar Cambios';
+                cancelEditButton.classList.remove('hidden');
+            }
+        };
+
+        // Cancel editing
+        cancelEditButton.addEventListener('click', () => {
+            editingPaymentId = null;
+            paymentForm.reset();
+            salaryInput.value = 0;
+            contributionsInput.value = 0;
+            aportesInput.value = 0;
+            artInput.value = 0;
+            aguinaldoInput.value = 0;
+            calculateTotal();
+            formTitle.textContent = 'Registrar Nuevo Pago';
+            saveButton.textContent = 'Agregar Pago';
+            cancelEditButton.classList.add('hidden');
+        });
+
+        // Confirm delete modal
+        let paymentToDeleteId = null;
+        window.confirmDelete = (id, dateString) => {
+            paymentToDeleteId = id;
+            const formattedDate = new Date(dateString).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+            confirmMessage.innerHTML = `¿Está seguro de que desea eliminar el pago del <span class="font-bold">${formattedDate}</span>? Esta acción no se puede deshacer.`;
+            confirmModal.style.display = 'flex';
+        };
+
+        deleteConfirmButton.addEventListener('click', () => {
+            payments = payments.filter(p => p.id !== paymentToDeleteId);
+            savePayments();
+            confirmModal.style.display = 'none';
+            showMessage('Pago eliminado exitosamente.');
+        });
+
+        deleteCancelButton.addEventListener('click', () => {
+            confirmModal.style.display = 'none';
+            paymentToDeleteId = null;
+        });
+
+        // Close modal if clicked outside
+        window.onclick = function(event) {
+            if (event.target == confirmModal) {
+                confirmModal.style.display = "none";
+                paymentToDeleteId = null;
+            }
+        }
+
+        // --- Gemini API Integration: Generate Note ---
+        generateNoteButton.addEventListener('click', async () => {
+            const date = dateInput.value;
+            const salary = parseFloat(salaryInput.value || 0);
+            const contributions = parseFloat(contributionsInput.value || 0);
+            const aportes = parseFloat(aportesInput.value || 0);
+            const art = parseFloat(artInput.value || 0);
+            const aguinaldo = parseFloat(aguinaldoInput.value || 0);
+
+            if (!date || !salary) {
+                showMessage('Por favor, ingrese la fecha y el sueldo para generar una nota.', true);
+                return;
+            }
+
+            generateNoteButton.disabled = true;
+            generateNoteLoading.classList.remove('hidden');
+
+            let prompt = `Genera una nota concisa para un registro de pago a una empleada doméstica. Los detalles del pago son: Fecha: ${date}, Sueldo: $${salary.toFixed(2)}, Contribuciones: $${contributions.toFixed(2)}, Aportes: $${aportes.toFixed(2)}, ART: $${art.toFixed(2)}.`;
+
+            if (aguinaldo > 0) {
+                prompt += ` Incluye el Aguinaldo: $${aguinaldo.toFixed(2)}.`;
+            } else {
+                prompt += ` No se incluye aguinaldo.`;
+            }
+            prompt += ` La nota debe ser breve y profesional.`;
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Leave this as-is. Canvas will provide the API key at runtime.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const generatedText = result.candidates[0].content.parts[0].text;
+                    descriptionInput.value = generatedText.trim();
+                    showMessage('Nota generada exitosamente.');
+                } else {
+                    console.error("Unexpected API response structure:", result);
+                    showMessage('Error al generar la nota: Respuesta inesperada de la API.', true);
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                showMessage('Error al conectar con la API de Gemini. Intente de nuevo más tarde.', true);
+            } finally {
+                generateNoteButton.disabled = false;
+                generateNoteLoading.classList.add('hidden');
+            }
+        });
+
+        // Initial render and event listeners on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPayments();
+            calculateTotal(); // Calculate initial total for empty form
+
+            // Event listeners for input changes to update total dynamically
+            [salaryInput, contributionsInput, aportesInput, artInput, aguinaldoInput].forEach(input => {
+                input.addEventListener('input', calculateTotal);
+            });
+        });
+    </script>
+</body>
+</html>
